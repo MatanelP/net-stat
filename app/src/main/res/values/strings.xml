@@ -9,9 +9,11 @@
     <string name="status_description">Monitor network speed in your status bar</string>
     <string name="start_on_boot">Start on device boot</string>
     <string name="notification_channel_name">Network Speed</string>
+    <string name="notification_channel_name_hidden">Network Speed (Hidden)</string>
     <string name="notification_channel_description">Shows current network upload and download speed</string>
     <string name="notification_title">Network Speed</string>
     <string name="notification_permission_required">Notification permission is required to show network speed</string>
+    <string name="monitoring_started_message">Monitoring started. Speed display may take a few seconds to appear.</string>
     
     <!-- Settings -->
     <string name="pref_category_display">Display</string>
@@ -34,7 +36,10 @@
     <string name="pref_arrow_style_summary">Style of direction indicators</string>
     
     <string name="pref_show_unit_icon_title">Show Unit in Icon</string>
-    <string name="pref_show_unit_icon_summary">Display unit (K, M) in status bar icon</string>
+    <string name="pref_show_unit_icon_summary">Display unit (B, K, M) in status bar icon</string>
+    
+    <string name="pref_hide_notification_title">Minimize Notification</string>
+    <string name="pref_hide_notification_summary">Minimize notification content (Android requires it to be visible)</string>
     
     <string name="pref_icon_position_title">Icon Text Position</string>
     <string name="pref_icon_position_summary">Position of text within status bar icon</string>

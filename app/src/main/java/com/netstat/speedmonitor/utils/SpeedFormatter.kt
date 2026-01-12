@@ -41,7 +41,7 @@ object SpeedFormatter {
             value >= 1_000_000_000 -> if (showUnit) String.format("%.1fG", value / 1_000_000_000) else String.format("%.1f", value / 1_000_000_000)
             value >= 1_000_000 -> if (showUnit) String.format("%.1fM", value / 1_000_000) else String.format("%.1f", value / 1_000_000)
             value >= 1_000 -> if (showUnit) String.format("%.0fK", value / 1_000) else String.format("%.0f", value / 1_000)
-            else -> String.format("%.0f", value)
+            else -> if (showUnit) String.format("%.0fB", value) else String.format("%.0f", value)
         }
     }
 
@@ -57,7 +57,7 @@ object SpeedFormatter {
         return when {
             bytesPerSecond >= 1_000_000 -> if (showUnit) String.format("%.1fM", bytesPerSecond / 1_000_000) else String.format("%.1f", bytesPerSecond / 1_000_000)
             bytesPerSecond >= 1_000 -> if (showUnit) String.format("%.0fK", bytesPerSecond / 1_000) else String.format("%.0f", bytesPerSecond / 1_000)
-            else -> String.format("%.0f", bytesPerSecond)
+            else -> if (showUnit) String.format("%.0fB", bytesPerSecond) else String.format("%.0f", bytesPerSecond)
         }
     }
 }

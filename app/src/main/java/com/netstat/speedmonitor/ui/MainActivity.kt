@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
+import com.google.android.material.snackbar.Snackbar
 import com.netstat.speedmonitor.R
 import com.netstat.speedmonitor.databinding.ActivityMainBinding
 import com.netstat.speedmonitor.service.NetworkMonitorService
@@ -117,6 +118,7 @@ class MainActivity : AppCompatActivity() {
         NetworkMonitorService.start(this)
         isServiceRunning = true
         updateUI()
+        Snackbar.make(binding.root, R.string.monitoring_started_message, Snackbar.LENGTH_LONG).show()
     }
 
     private fun stopMonitoring() {
