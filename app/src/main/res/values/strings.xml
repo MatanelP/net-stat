@@ -30,6 +30,15 @@
     <string name="pref_icon_style_title">Icon Style</string>
     <string name="pref_icon_style_summary">Choose what to show in status bar icon</string>
     
+    <string name="pref_arrow_style_title">Arrow Style</string>
+    <string name="pref_arrow_style_summary">Style of direction indicators</string>
+    
+    <string name="pref_show_unit_icon_title">Show Unit in Icon</string>
+    <string name="pref_show_unit_icon_summary">Display unit (K, M) in status bar icon</string>
+    
+    <string name="pref_icon_position_title">Icon Text Position</string>
+    <string name="pref_icon_position_summary">Position of text within status bar icon</string>
+    
     <string name="pref_icon_color_title">Icon Text Color</string>
     <string name="pref_icon_color_summary">Color of speed text in status bar</string>
     

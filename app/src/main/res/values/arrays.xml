@@ -47,4 +47,42 @@
         <item>cyan</item>
         <item>yellow</item>
     </string-array>
+
+    <string-array name="arrow_style_entries">
+        <item>Arrows (↓ ↑)</item>
+        <item>Triangles (▼ ▲)</item>
+        <item>Letters (D U)</item>
+        <item>None</item>
+    </string-array>
+
+    <string-array name="arrow_style_values">
+        <item>arrows</item>
+        <item>triangles</item>
+        <item>letters</item>
+        <item>none</item>
+    </string-array>
+
+    <string-array name="icon_position_entries">
+        <item>Top Left</item>
+        <item>Top Center</item>
+        <item>Top Right</item>
+        <item>Center Left</item>
+        <item>Center</item>
+        <item>Center Right</item>
+        <item>Bottom Left</item>
+        <item>Bottom Center</item>
+        <item>Bottom Right</item>
+    </string-array>
+
+    <string-array name="icon_position_values">
+        <item>top_left</item>
+        <item>top_center</item>
+        <item>top_right</item>
+        <item>center_left</item>
+        <item>center</item>
+        <item>center_right</item>
+        <item>bottom_left</item>
+        <item>bottom_center</item>
+        <item>bottom_right</item>
+    </string-array>
 </resources>

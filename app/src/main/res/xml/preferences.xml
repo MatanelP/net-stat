@@ -41,6 +41,30 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
+            android:key="arrow_style"
+            android:title="@string/pref_arrow_style_title"
+            android:summary="@string/pref_arrow_style_summary"
+            android:defaultValue="arrows"
+            android:entries="@array/arrow_style_entries"
+            android:entryValues="@array/arrow_style_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:key="show_unit_in_icon"
+            android:title="@string/pref_show_unit_icon_title"
+            android:summary="@string/pref_show_unit_icon_summary"
+            android:defaultValue="true" />
+
+        <ListPreference
+            android:key="icon_position"
+            android:title="@string/pref_icon_position_title"
+            android:summary="@string/pref_icon_position_summary"
+            android:defaultValue="center_left"
+            android:entries="@array/icon_position_entries"
+            android:entryValues="@array/icon_position_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
             android:key="icon_text_color_name"
             android:title="@string/pref_icon_color_title"
             android:defaultValue="white"

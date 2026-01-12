@@ -17,6 +17,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import com.netstat.speedmonitor.R
 import com.netstat.speedmonitor.ui.MainActivity
@@ -27,6 +28,9 @@ class NetworkMonitorService : Service() {
     companion object {
         const val CHANNEL_ID = "network_speed_channel"
         const val NOTIFICATION_ID = 1
+        const val ACTION_SPEED_UPDATE = "com.netstat.speedmonitor.SPEED_UPDATE"
+        const val EXTRA_DOWNLOAD_SPEED = "download_speed"
+        const val EXTRA_UPLOAD_SPEED = "upload_speed"
         private const val UPDATE_INTERVAL = 1000L
 
         fun start(context: Context) {
@@ -99,6 +103,13 @@ class NetworkMonitorService : Service() {
             val notification = createNotification(downloadSpeed, uploadSpeed)
             val manager = getSystemService(NotificationManager::class.java)
             manager.notify(NOTIFICATION_ID, notification)
+
+            // Broadcast speed update to MainActivity
+            val updateIntent = Intent(ACTION_SPEED_UPDATE).apply {
+                putExtra(EXTRA_DOWNLOAD_SPEED, downloadSpeed)
+                putExtra(EXTRA_UPLOAD_SPEED, uploadSpeed)
+            }
+            LocalBroadcastManager.getInstance(this).sendBroadcast(updateIntent)
         }
 
         lastRxBytes = currentRxBytes
@@ -112,16 +123,21 @@ class NetworkMonitorService : Service() {
         val showUpload = prefs.getBoolean("show_upload", true)
         val showDownload = prefs.getBoolean("show_download", true)
         val iconStyle = prefs.getString("icon_style", "combined") ?: "combined"
+        val arrowStyle = prefs.getString("arrow_style", "arrows") ?: "arrows"
+        val showUnitInIcon = prefs.getBoolean("show_unit_in_icon", true)
+        val iconPosition = prefs.getString("icon_position", "center_left") ?: "center_left"
         val textColor = prefs.getInt("icon_text_color", Color.WHITE)
         val fontSize = prefs.getInt("icon_font_size", 12)
 
+        val (downArrow, upArrow) = getArrowSymbols(arrowStyle)
+        
         val downloadStr = SpeedFormatter.format(downloadSpeed, unit)
         val uploadStr = SpeedFormatter.format(uploadSpeed, unit)
 
         val contentText = buildString {
-            if (showDownload) append("↓ $downloadStr")
+            if (showDownload) append("$downArrow $downloadStr")
             if (showDownload && showUpload) append("  ")
-            if (showUpload) append("↑ $uploadStr")
+            if (showUpload) append("$upArrow $uploadStr")
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -131,7 +147,7 @@ class NetworkMonitorService : Service() {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val icon = createSpeedIcon(downloadSpeed, uploadSpeed, iconStyle, textColor, fontSize, showDownload, showUpload, unit)
+        val icon = createSpeedIcon(downloadSpeed, uploadSpeed, iconStyle, arrowStyle, showUnitInIcon, iconPosition, textColor, fontSize, showDownload, showUpload, unit)
 
         return NotificationCompat.Builder(this, CHANNEL_ID).apply {
             setSmallIcon(androidx.core.graphics.drawable.IconCompat.createWithBitmap(icon))
@@ -145,59 +161,163 @@ class NetworkMonitorService : Service() {
         }.build()
     }
 
+    private fun getArrowSymbols(style: String): Pair<String, String> {
+        return when (style) {
+            "arrows" -> Pair("↓", "↑")
+            "triangles" -> Pair("▼", "▲")
+            "letters" -> Pair("D", "U")
+            "none" -> Pair("", "")
+            else -> Pair("↓", "↑")
+        }
+    }
+
     private fun createSpeedIcon(
         downloadSpeed: Double,
         uploadSpeed: Double,
         style: String,
+        arrowStyle: String,
+        showUnitInIcon: Boolean,
+        position: String,
         textColor: Int,
         fontSize: Int,
         showDownload: Boolean,
         showUpload: Boolean,
         unit: String
     ): Bitmap {
-        val size = 96
+        val size = 192
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
+        val (downArrow, upArrow) = getArrowSymbols(arrowStyle)
+
+        // Determine alignment from position
+        val (hAlign, vAlign) = parsePosition(position)
+        
         val paint = Paint().apply {
             color = textColor
-            textSize = fontSize.toFloat() * 2.5f
             typeface = Typeface.DEFAULT_BOLD
             isAntiAlias = true
-            textAlign = Paint.Align.CENTER
+            textAlign = when (hAlign) {
+                "left" -> Paint.Align.LEFT
+                "center" -> Paint.Align.CENTER
+                "right" -> Paint.Align.RIGHT
+                else -> Paint.Align.LEFT
+            }
+        }
+
+        val xPos = when (hAlign) {
+            "left" -> 4f
+            "center" -> size / 2f
+            "right" -> size - 4f
+            else -> 4f
         }
 
         when (style) {
             "combined" -> {
-                val text = if (showDownload && showUpload) {
-                    val dl = SpeedFormatter.formatShort(downloadSpeed, unit)
-                    val ul = SpeedFormatter.formatShort(uploadSpeed, unit)
-                    "$dl\n$ul"
-                } else if (showDownload) {
-                    SpeedFormatter.formatShort(downloadSpeed, unit)
+                if (showDownload && showUpload) {
+                    val dl = SpeedFormatter.formatShort(downloadSpeed, unit, showUnitInIcon)
+                    val ul = SpeedFormatter.formatShort(uploadSpeed, unit, showUnitInIcon)
+                    val line1 = if (downArrow.isNotEmpty()) "$downArrow$dl" else dl
+                    val line2 = if (upArrow.isNotEmpty()) "$upArrow$ul" else ul
+                    
+                    val maxLen = maxOf(line1.length, line2.length)
+                    paint.textSize = when {
+                        maxLen <= 3 -> fontSize.toFloat() * 4f
+                        maxLen <= 4 -> fontSize.toFloat() * 3.5f
+                        maxLen <= 5 -> fontSize.toFloat() * 3f
+                        else -> fontSize.toFloat() * 2.5f
+                    }
+                    
+                    val lineHeight = paint.textSize * 1.1f
+                    val totalHeight = lineHeight * 2
+                    
+                    val startY = when (vAlign) {
+                        "top" -> paint.textSize + 4f
+                        "center" -> (size - totalHeight) / 2 + paint.textSize
+                        "bottom" -> size - totalHeight - 4f + paint.textSize
+                        else -> (size - totalHeight) / 2 + paint.textSize
+                    }
+                    
+                    canvas.drawText(line1, xPos, startY, paint)
+                    canvas.drawText(line2, xPos, startY + lineHeight, paint)
                 } else {
-                    SpeedFormatter.formatShort(uploadSpeed, unit)
-                }
-                
-                val lines = text.split("\n")
-                if (lines.size == 2) {
-                    paint.textSize = fontSize.toFloat() * 2f
-                    canvas.drawText("↓${lines[0]}", size / 2f, size / 2f - 5, paint)
-                    canvas.drawText("↑${lines[1]}", size / 2f, size / 2f + paint.textSize, paint)
-                } else {
-                    canvas.drawText(text, size / 2f, size / 2f + paint.textSize / 3, paint)
+                    val speed = if (showDownload) downloadSpeed else uploadSpeed
+                    val arrow = if (showDownload) downArrow else upArrow
+                    val formatted = SpeedFormatter.formatShort(speed, unit, showUnitInIcon)
+                    val text = if (arrow.isNotEmpty()) "$arrow$formatted" else formatted
+                    
+                    paint.textSize = when {
+                        text.length <= 3 -> fontSize.toFloat() * 5f
+                        text.length <= 4 -> fontSize.toFloat() * 4f
+                        text.length <= 5 -> fontSize.toFloat() * 3.5f
+                        else -> fontSize.toFloat() * 3f
+                    }
+                    
+                    val yPos = when (vAlign) {
+                        "top" -> paint.textSize + 4f
+                        "center" -> size / 2f + paint.textSize / 3
+                        "bottom" -> size - 4f
+                        else -> size / 2f + paint.textSize / 3
+                    }
+                    
+                    canvas.drawText(text, xPos, yPos, paint)
                 }
             }
             "download_only" -> {
-                val text = "↓" + SpeedFormatter.formatShort(downloadSpeed, unit)
-                canvas.drawText(text, size / 2f, size / 2f + paint.textSize / 3, paint)
+                val dl = SpeedFormatter.formatShort(downloadSpeed, unit, showUnitInIcon)
+                val text = if (downArrow.isNotEmpty()) "$downArrow$dl" else dl
+                paint.textSize = when {
+                    text.length <= 3 -> fontSize.toFloat() * 5f
+                    text.length <= 4 -> fontSize.toFloat() * 4f
+                    text.length <= 5 -> fontSize.toFloat() * 3.5f
+                    else -> fontSize.toFloat() * 3f
+                }
+                
+                val yPos = when (vAlign) {
+                    "top" -> paint.textSize + 4f
+                    "center" -> size / 2f + paint.textSize / 3
+                    "bottom" -> size - 4f
+                    else -> size / 2f + paint.textSize / 3
+                }
+                
+                canvas.drawText(text, xPos, yPos, paint)
             }
             "upload_only" -> {
-                val text = "↑" + SpeedFormatter.formatShort(uploadSpeed, unit)
-                canvas.drawText(text, size / 2f, size / 2f + paint.textSize / 3, paint)
+                val ul = SpeedFormatter.formatShort(uploadSpeed, unit, showUnitInIcon)
+                val text = if (upArrow.isNotEmpty()) "$upArrow$ul" else ul
+                paint.textSize = when {
+                    text.length <= 3 -> fontSize.toFloat() * 5f
+                    text.length <= 4 -> fontSize.toFloat() * 4f
+                    text.length <= 5 -> fontSize.toFloat() * 3.5f
+                    else -> fontSize.toFloat() * 3f
+                }
+                
+                val yPos = when (vAlign) {
+                    "top" -> paint.textSize + 4f
+                    "center" -> size / 2f + paint.textSize / 3
+                    "bottom" -> size - 4f
+                    else -> size / 2f + paint.textSize / 3
+                }
+                
+                canvas.drawText(text, xPos, yPos, paint)
             }
         }
 
         return bitmap
+    }
+
+    private fun parsePosition(position: String): Pair<String, String> {
+        return when (position) {
+            "top_left" -> Pair("left", "top")
+            "top_center" -> Pair("center", "top")
+            "top_right" -> Pair("right", "top")
+            "center_left" -> Pair("left", "center")
+            "center" -> Pair("center", "center")
+            "center_right" -> Pair("right", "center")
+            "bottom_left" -> Pair("left", "bottom")
+            "bottom_center" -> Pair("center", "bottom")
+            "bottom_right" -> Pair("right", "bottom")
+            else -> Pair("left", "center")
+        }
     }
 }

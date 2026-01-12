@@ -14,15 +14,15 @@ object SpeedFormatter {
         }
     }
 
-    fun formatShort(bytesPerSecond: Double, unit: String): String {
+    fun formatShort(bytesPerSecond: Double, unit: String, showUnit: Boolean = true): String {
         return when (unit) {
-            "bps" -> formatBpsShort(bytesPerSecond * 8)
-            "Bps" -> formatBpsShort(bytesPerSecond, false)
-            "kbps" -> "${(bytesPerSecond * 8 / 1000).toInt()}K"
-            "KBps" -> "${(bytesPerSecond / 1000).toInt()}K"
-            "mbps" -> String.format("%.1fM", bytesPerSecond * 8 / 1_000_000)
-            "MBps" -> String.format("%.1fM", bytesPerSecond / 1_000_000)
-            else -> formatAutoShort(bytesPerSecond)
+            "bps" -> formatBpsShort(bytesPerSecond * 8, showUnit)
+            "Bps" -> formatBpsShort(bytesPerSecond, showUnit)
+            "kbps" -> if (showUnit) "${(bytesPerSecond * 8 / 1000).toInt()}K" else "${(bytesPerSecond * 8 / 1000).toInt()}"
+            "KBps" -> if (showUnit) "${(bytesPerSecond / 1000).toInt()}K" else "${(bytesPerSecond / 1000).toInt()}"
+            "mbps" -> if (showUnit) String.format("%.1fM", bytesPerSecond * 8 / 1_000_000) else String.format("%.1f", bytesPerSecond * 8 / 1_000_000)
+            "MBps" -> if (showUnit) String.format("%.1fM", bytesPerSecond / 1_000_000) else String.format("%.1f", bytesPerSecond / 1_000_000)
+            else -> formatAutoShort(bytesPerSecond, showUnit)
         }
     }
 
@@ -36,11 +36,11 @@ object SpeedFormatter {
         }
     }
 
-    private fun formatBpsShort(value: Double, isBits: Boolean = true): String {
+    private fun formatBpsShort(value: Double, showUnit: Boolean): String {
         return when {
-            value >= 1_000_000_000 -> String.format("%.1fG", value / 1_000_000_000)
-            value >= 1_000_000 -> String.format("%.1fM", value / 1_000_000)
-            value >= 1_000 -> String.format("%.0fK", value / 1_000)
+            value >= 1_000_000_000 -> if (showUnit) String.format("%.1fG", value / 1_000_000_000) else String.format("%.1f", value / 1_000_000_000)
+            value >= 1_000_000 -> if (showUnit) String.format("%.1fM", value / 1_000_000) else String.format("%.1f", value / 1_000_000)
+            value >= 1_000 -> if (showUnit) String.format("%.0fK", value / 1_000) else String.format("%.0f", value / 1_000)
             else -> String.format("%.0f", value)
         }
     }
@@ -53,10 +53,10 @@ object SpeedFormatter {
         }
     }
 
-    private fun formatAutoShort(bytesPerSecond: Double): String {
+    private fun formatAutoShort(bytesPerSecond: Double, showUnit: Boolean): String {
         return when {
-            bytesPerSecond >= 1_000_000 -> String.format("%.1fM", bytesPerSecond / 1_000_000)
-            bytesPerSecond >= 1_000 -> String.format("%.0fK", bytesPerSecond / 1_000)
+            bytesPerSecond >= 1_000_000 -> if (showUnit) String.format("%.1fM", bytesPerSecond / 1_000_000) else String.format("%.1f", bytesPerSecond / 1_000_000)
+            bytesPerSecond >= 1_000 -> if (showUnit) String.format("%.0fK", bytesPerSecond / 1_000) else String.format("%.0f", bytesPerSecond / 1_000)
             else -> String.format("%.0f", bytesPerSecond)
         }
     }

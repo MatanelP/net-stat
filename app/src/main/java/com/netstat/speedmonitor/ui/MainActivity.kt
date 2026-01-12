@@ -1,7 +1,10 @@
 package com.netstat.speedmonitor.ui
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,16 +13,26 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
 import com.netstat.speedmonitor.R
 import com.netstat.speedmonitor.databinding.ActivityMainBinding
 import com.netstat.speedmonitor.service.NetworkMonitorService
+import com.netstat.speedmonitor.utils.SpeedFormatter
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isServiceRunning = false
+
+    private val speedUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val downloadSpeed = intent.getDoubleExtra(NetworkMonitorService.EXTRA_DOWNLOAD_SPEED, 0.0)
+            val uploadSpeed = intent.getDoubleExtra(NetworkMonitorService.EXTRA_UPLOAD_SPEED, 0.0)
+            updateSpeedDisplay(downloadSpeed, uploadSpeed)
+        }
+    }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -46,6 +59,15 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateServiceStatus()
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            speedUpdateReceiver,
+            IntentFilter(NetworkMonitorService.ACTION_SPEED_UPDATE)
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(speedUpdateReceiver)
     }
 
     private fun setupUI() {
@@ -119,6 +141,14 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
+    private fun updateSpeedDisplay(downloadSpeed: Double, uploadSpeed: Double) {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val unit = prefs.getString("speed_unit", "auto") ?: "auto"
+        
+        binding.tvDownloadSpeed.text = SpeedFormatter.format(downloadSpeed, unit)
+        binding.tvUploadSpeed.text = SpeedFormatter.format(uploadSpeed, unit)
+    }
+
     private fun updateUI() {
         if (isServiceRunning) {
             binding.btnToggleService.text = getString(R.string.stop_monitoring)
@@ -132,6 +162,8 @@ class MainActivity : AppCompatActivity() {
             binding.tvStatus.text = getString(R.string.status_stopped)
             binding.statusIndicator.setBackgroundResource(R.drawable.status_indicator_off)
             binding.speedCard.visibility = View.GONE
+            binding.tvDownloadSpeed.text = "0 B/s"
+            binding.tvUploadSpeed.text = "0 B/s"
         }
     }
 }
