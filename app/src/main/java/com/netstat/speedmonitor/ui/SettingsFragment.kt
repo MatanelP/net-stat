@@ -1,10 +1,14 @@
 package com.netstat.speedmonitor.ui
 
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import androidx.preference.ListPreference
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SeekBarPreference
+import com.netstat.speedmonitor.BuildConfig
 import com.netstat.speedmonitor.R
 
 class SettingsFragment : PreferenceFragmentCompat() {
@@ -63,7 +67,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
         findPreference<SeekBarPreference>("icon_font_size")?.apply {
             min = 8
             max = 20
-            setDefaultValue(12)
+            setDefaultValue(16)
+        }
+
+        // About section
+        findPreference<Preference>("version")?.apply {
+            summary = BuildConfig.VERSION_NAME
+        }
+
+        findPreference<Preference>("source_code")?.apply {
+            setOnPreferenceClickListener {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/MatanelP/net-stat"))
+                startActivity(intent)
+                true
+            }
         }
     }
 }

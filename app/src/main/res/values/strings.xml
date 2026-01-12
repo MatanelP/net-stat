@@ -49,4 +49,13 @@
     
     <string name="pref_icon_size_title">Icon Font Size</string>
     <string name="pref_icon_size_summary">Size of text in status bar icon</string>
+    <!-- About -->
+    <string name="pref_category_about">About</string>
+    <string name="pref_version_title">Version</string>
+    <string name="pref_source_code_title">Source Code</string>
+    <string name="pref_source_code_summary">View on GitHub</string>
+    <string name="pref_developer_title">Developer</string>
+    <string name="pref_developer_summary">MatanelP</string>
+    <string name="pref_license_title">License</string>
+    <string name="pref_license_summary">MIT License</string>
 </resources>

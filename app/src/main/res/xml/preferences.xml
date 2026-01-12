@@ -88,4 +88,30 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/pref_category_about">
+
+        <Preference
+            android:key="version"
+            android:title="@string/pref_version_title"
+            android:selectable="false" />
+
+        <Preference
+            android:key="source_code"
+            android:title="@string/pref_source_code_title"
+            android:summary="@string/pref_source_code_summary" />
+
+        <Preference
+            android:key="developer"
+            android:title="@string/pref_developer_title"
+            android:summary="@string/pref_developer_summary"
+            android:selectable="false" />
+
+        <Preference
+            android:key="license"
+            android:title="@string/pref_license_title"
+            android:summary="@string/pref_license_summary"
+            android:selectable="false" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>
