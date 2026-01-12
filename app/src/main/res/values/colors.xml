@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary -->
+    <color name="primary">#6750A4</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#EADDFF</color>
+    <color name="on_primary_container">#21005D</color>
+    
+    <!-- Secondary -->
+    <color name="secondary">#625B71</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#E8DEF8</color>
+    <color name="on_secondary_container">#1D192B</color>
+    
+    <!-- Tertiary -->
+    <color name="tertiary">#7D5260</color>
+    <color name="tertiary_container">#FFD8E4</color>
+    
+    <!-- Surface -->
+    <color name="surface">#FFFBFE</color>
+    <color name="surface_variant">#E7E0EC</color>
+    
+    <!-- Status -->
+    <color name="status_on">#4CAF50</color>
+    <color name="status_off">#79747E</color>
+    
+    <!-- Speed indicators -->
+    <color name="download_color">#4CAF50</color>
+    <color name="upload_color">#2196F3</color>
+</resources>

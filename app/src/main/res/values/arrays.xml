@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="speed_unit_entries">
+        <item>Auto (KB/s, MB/s)</item>
+        <item>Bits per second (Kbps, Mbps)</item>
+        <item>Bytes per second (KB/s, MB/s)</item>
+        <item>Kilobits per second (Kbps)</item>
+        <item>Kilobytes per second (KB/s)</item>
+        <item>Megabits per second (Mbps)</item>
+        <item>Megabytes per second (MB/s)</item>
+    </string-array>
+
+    <string-array name="speed_unit_values">
+        <item>auto</item>
+        <item>bps</item>
+        <item>Bps</item>
+        <item>kbps</item>
+        <item>KBps</item>
+        <item>mbps</item>
+        <item>MBps</item>
+    </string-array>
+
+    <string-array name="icon_style_entries">
+        <item>Combined (Download + Upload)</item>
+        <item>Download Only</item>
+        <item>Upload Only</item>
+    </string-array>
+
+    <string-array name="icon_style_values">
+        <item>combined</item>
+        <item>download_only</item>
+        <item>upload_only</item>
+    </string-array>
+
+    <string-array name="icon_color_entries">
+        <item>White</item>
+        <item>Black</item>
+        <item>Green</item>
+        <item>Cyan</item>
+        <item>Yellow</item>
+    </string-array>
+
+    <string-array name="icon_color_values">
+        <item>white</item>
+        <item>black</item>
+        <item>green</item>
+        <item>cyan</item>
+        <item>yellow</item>
+    </string-array>
+</resources>
