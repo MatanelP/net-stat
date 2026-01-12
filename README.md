@@ -25,7 +25,7 @@ A modern Android app that displays real-time network speed (download/upload) in 
   - Show/hide unit in icon
 - 🚀 **Start on Boot** - Optionally start monitoring when device boots
 - 🔋 **Battery Efficient** - Lightweight foreground service
-- 📱 **Modern Android** - Targets Android 15 (API 35)
+- 📱 **Modern Android** - Targets Android 16 (API 36)
 
 ## Requirements
 
@@ -67,7 +67,7 @@ cd net-stat
 - **Architecture**: Android Services + LocalBroadcastManager
 - **Build**: Gradle 8.11.1 + AGP 8.7.3
 - **Min SDK**: 28 (Android 9)
-- **Target SDK**: 35 (Android 15)
+- **Target SDK**: 36 (Android 16)
 
 ## Contributing
 
