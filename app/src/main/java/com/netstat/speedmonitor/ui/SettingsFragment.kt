@@ -1,7 +1,6 @@
 package com.netstat.speedmonitor.ui
 
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import androidx.preference.ListPreference
@@ -28,56 +27,34 @@ class SettingsFragment : PreferenceFragmentCompat() {
             summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
         }
 
-        findPreference<ListPreference>("icon_position")?.apply {
-            summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-        }
-
-        findPreference<ListPreference>("icon_text_color_name")?.apply {
-            summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-            setOnPreferenceChangeListener { _, newValue ->
-                val color = when (newValue as String) {
-                    "white" -> Color.WHITE
-                    "black" -> Color.BLACK
-                    "green" -> Color.GREEN
-                    "cyan" -> Color.CYAN
-                    "yellow" -> Color.YELLOW
-                    else -> Color.WHITE
-                }
-                preferenceManager.sharedPreferences?.edit()
-                    ?.putInt("icon_text_color", color)
-                    ?.apply()
-                true
-            }
-            
-            // Initialize color int value on first load
-            val currentColorName = preferenceManager.sharedPreferences?.getString("icon_text_color_name", "white")
-            val color = when (currentColorName) {
-                "white" -> Color.WHITE
-                "black" -> Color.BLACK
-                "green" -> Color.GREEN
-                "cyan" -> Color.CYAN
-                "yellow" -> Color.YELLOW
-                else -> Color.WHITE
-            }
-            preferenceManager.sharedPreferences?.edit()
-                ?.putInt("icon_text_color", color)
-                ?.apply()
-        }
-
         findPreference<SeekBarPreference>("icon_font_size")?.apply {
             min = 8
             max = 20
             setDefaultValue(16)
         }
 
-        // About section
-        findPreference<Preference>("version")?.apply {
-            summary = BuildConfig.VERSION_NAME
+        findPreference<ListPreference>("icon_text_color")?.apply {
+            summaryProvider =
+                    Preference.SummaryProvider<ListPreference> { pref ->
+                        val selectedEntry = pref.entry ?: "White"
+                        "$selectedEntry (Supported devices only)"
+                    }
         }
+
+        findPreference<ListPreference>("icon_font_style")?.apply {
+            summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+        }
+
+        // About section
+        findPreference<Preference>("version")?.apply { summary = BuildConfig.VERSION_NAME }
 
         findPreference<Preference>("source_code")?.apply {
             setOnPreferenceClickListener {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/MatanelP/net-stat"))
+                val intent =
+                        Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://github.com/MatanelP/net-stat")
+                        )
                 startActivity(intent)
                 true
             }

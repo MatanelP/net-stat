@@ -32,7 +32,7 @@ class NetworkMonitorService : Service() {
         const val ACTION_SPEED_UPDATE = "com.netstat.speedmonitor.SPEED_UPDATE"
         const val EXTRA_DOWNLOAD_SPEED = "download_speed"
         const val EXTRA_UPLOAD_SPEED = "upload_speed"
-        private const val UPDATE_INTERVAL = 1000L
+        private const val UPDATE_INTERVAL = 750L
 
         fun start(context: Context) {
             val intent = Intent(context, NetworkMonitorService::class.java)
@@ -49,12 +49,13 @@ class NetworkMonitorService : Service() {
     private var lastTxBytes = 0L
     private var lastTime = 0L
 
-    private val updateRunnable = object : Runnable {
-        override fun run() {
-            updateNotification()
-            handler.postDelayed(this, UPDATE_INTERVAL)
-        }
-    }
+    private val updateRunnable =
+            object : Runnable {
+                override fun run() {
+                    updateNotification()
+                    handler.postDelayed(this, UPDATE_INTERVAL)
+                }
+            }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -79,32 +80,36 @@ class NetworkMonitorService : Service() {
 
     private fun createNotificationChannel() {
         val manager = getSystemService(NotificationManager::class.java)
-        
+
         // Regular channel
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            getString(R.string.notification_channel_name),
-            NotificationManager.IMPORTANCE_LOW
-        ).apply {
-            description = getString(R.string.notification_channel_description)
-            setShowBadge(false)
-            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-        }
+        val channel =
+                NotificationChannel(
+                                CHANNEL_ID,
+                                getString(R.string.notification_channel_name),
+                                NotificationManager.IMPORTANCE_LOW
+                        )
+                        .apply {
+                            description = getString(R.string.notification_channel_description)
+                            setShowBadge(false)
+                            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                        }
         manager.createNotificationChannel(channel)
-        
+
         // Hidden channel - minimum importance to hide from shade
-        val hiddenChannel = NotificationChannel(
-            CHANNEL_ID_HIDDEN,
-            getString(R.string.notification_channel_name_hidden),
-            NotificationManager.IMPORTANCE_MIN
-        ).apply {
-            description = getString(R.string.notification_channel_description)
-            setShowBadge(false)
-            lockscreenVisibility = Notification.VISIBILITY_SECRET
-            setSound(null, null)
-            enableVibration(false)
-            enableLights(false)
-        }
+        val hiddenChannel =
+                NotificationChannel(
+                                CHANNEL_ID_HIDDEN,
+                                getString(R.string.notification_channel_name_hidden),
+                                NotificationManager.IMPORTANCE_MIN
+                        )
+                        .apply {
+                            description = getString(R.string.notification_channel_description)
+                            setShowBadge(false)
+                            lockscreenVisibility = Notification.VISIBILITY_SECRET
+                            setSound(null, null)
+                            enableVibration(false)
+                            enableLights(false)
+                        }
         manager.createNotificationChannel(hiddenChannel)
     }
 
@@ -123,10 +128,11 @@ class NetworkMonitorService : Service() {
             manager.notify(NOTIFICATION_ID, notification)
 
             // Broadcast speed update to MainActivity
-            val updateIntent = Intent(ACTION_SPEED_UPDATE).apply {
-                putExtra(EXTRA_DOWNLOAD_SPEED, downloadSpeed)
-                putExtra(EXTRA_UPLOAD_SPEED, uploadSpeed)
-            }
+            val updateIntent =
+                    Intent(ACTION_SPEED_UPDATE).apply {
+                        putExtra(EXTRA_DOWNLOAD_SPEED, downloadSpeed)
+                        putExtra(EXTRA_UPLOAD_SPEED, uploadSpeed)
+                    }
             LocalBroadcastManager.getInstance(this).sendBroadcast(updateIntent)
         }
 
@@ -144,12 +150,41 @@ class NetworkMonitorService : Service() {
         val arrowStyle = prefs.getString("arrow_style", "arrows") ?: "arrows"
         val showUnitInIcon = prefs.getBoolean("show_unit_in_icon", true)
         val hideNotification = prefs.getBoolean("hide_notification", false)
-        val iconPosition = prefs.getString("icon_position", "center_left") ?: "center_left"
-        val textColor = prefs.getInt("icon_text_color", Color.WHITE)
         val fontSize = prefs.getInt("icon_font_size", 12)
 
+        // Handle potential type mismatch from old preferences (was stored as Int, now String)
+        val textColorName =
+                try {
+                    prefs.getString("icon_text_color", "white") ?: "white"
+                } catch (e: ClassCastException) {
+                    // Clear old preference and use default
+                    prefs.edit().remove("icon_text_color").apply()
+                    "white"
+                }
+
+        val fontStyle =
+                try {
+                    prefs.getString("icon_font_style", "bold") ?: "bold"
+                } catch (e: ClassCastException) {
+                    prefs.edit().remove("icon_font_style").apply()
+                    "bold"
+                }
+
+        // Convert color name to Color int
+        val textColor =
+                when (textColorName) {
+                    "white" -> Color.WHITE
+                    "black" -> Color.BLACK
+                    "green" -> Color.GREEN
+                    "cyan" -> Color.CYAN
+                    "yellow" -> Color.YELLOW
+                    "red" -> Color.RED
+                    "orange" -> Color.rgb(255, 165, 0)
+                    else -> Color.WHITE
+                }
+
         val (downArrow, upArrow) = getArrowSymbols(arrowStyle)
-        
+
         val downloadStr = SpeedFormatter.format(downloadSpeed, unit)
         val uploadStr = SpeedFormatter.format(uploadSpeed, unit)
 
@@ -159,32 +194,50 @@ class NetworkMonitorService : Service() {
             if (showUpload) append("$upArrow $uploadStr")
         }
 
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent =
+                PendingIntent.getActivity(
+                        this,
+                        0,
+                        Intent(this, MainActivity::class.java),
+                        PendingIntent.FLAG_IMMUTABLE
+                )
 
-        val icon = createSpeedIcon(downloadSpeed, uploadSpeed, iconStyle, arrowStyle, showUnitInIcon, iconPosition, textColor, fontSize, showDownload, showUpload, unit)
+        val icon =
+                createSpeedIcon(
+                        downloadSpeed,
+                        uploadSpeed,
+                        iconStyle,
+                        arrowStyle,
+                        showUnitInIcon,
+                        fontSize,
+                        showDownload,
+                        showUpload,
+                        unit,
+                        textColor,
+                        fontStyle
+                )
 
         val channelId = if (hideNotification) CHANNEL_ID_HIDDEN else CHANNEL_ID
-        
-        return NotificationCompat.Builder(this, channelId).apply {
-            setSmallIcon(androidx.core.graphics.drawable.IconCompat.createWithBitmap(icon))
-            if (!hideNotification) {
-                setContentTitle(getString(R.string.notification_title))
-                setContentText(contentText)
-            }
-            setOngoing(true)
-            setOnlyAlertOnce(true)
-            setContentIntent(pendingIntent)
-            priority = if (hideNotification) NotificationCompat.PRIORITY_MIN else NotificationCompat.PRIORITY_LOW
-            setCategory(NotificationCompat.CATEGORY_STATUS)
-            if (hideNotification) {
-                setVisibility(NotificationCompat.VISIBILITY_SECRET)
-            }
-        }.build()
+
+        return NotificationCompat.Builder(this, channelId)
+                .apply {
+                    setSmallIcon(androidx.core.graphics.drawable.IconCompat.createWithBitmap(icon))
+                    if (!hideNotification) {
+                        setContentTitle(getString(R.string.notification_title))
+                        setContentText(contentText)
+                    }
+                    setOngoing(true)
+                    setOnlyAlertOnce(true)
+                    setContentIntent(pendingIntent)
+                    priority =
+                            if (hideNotification) NotificationCompat.PRIORITY_MIN
+                            else NotificationCompat.PRIORITY_LOW
+                    setCategory(NotificationCompat.CATEGORY_STATUS)
+                    if (hideNotification) {
+                        setVisibility(NotificationCompat.VISIBILITY_SECRET)
+                    }
+                }
+                .build()
     }
 
     private fun getArrowSymbols(style: String): Pair<String, String> {
@@ -198,135 +251,141 @@ class NetworkMonitorService : Service() {
     }
 
     private fun createSpeedIcon(
-        downloadSpeed: Double,
-        uploadSpeed: Double,
-        style: String,
-        arrowStyle: String,
-        showUnitInIcon: Boolean,
-        position: String,
-        textColor: Int,
-        fontSize: Int,
-        showDownload: Boolean,
-        showUpload: Boolean,
-        unit: String
+            downloadSpeed: Double,
+            uploadSpeed: Double,
+            style: String,
+            arrowStyle: String,
+            showUnitInIcon: Boolean,
+            fontSize: Int,
+            showDownload: Boolean,
+            showUpload: Boolean,
+            unit: String,
+            textColor: Int,
+            fontStyle: String
     ): Bitmap {
-        val width = 256
-        val height = 192
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        // Android notification icons in status bar are constrained to ~24dp height
+        // For text-based icons, we need to balance width vs height
+        // A narrower icon renders LARGER because Android scales by the constraining dimension
+        // Using 80 pixels gives us a square icon that renders at full status bar height
+        val size = 80
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
         val (downArrow, upArrow) = getArrowSymbols(arrowStyle)
 
-        // Determine alignment from position
-        val (hAlign, vAlign) = parsePosition(position)
-        
-        val paint = Paint().apply {
-            color = textColor
-            typeface = Typeface.DEFAULT_BOLD
-            isAntiAlias = true
-            textAlign = when (hAlign) {
-                "left" -> Paint.Align.LEFT
-                "center" -> Paint.Align.CENTER
-                "right" -> Paint.Align.RIGHT
-                else -> Paint.Align.LEFT
+        // Determine typeface based on font style
+        val typeface =
+                when (fontStyle) {
+                    "bold" -> Typeface.DEFAULT_BOLD
+                    "italic" -> Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
+                    "bold_italic" -> Typeface.create(Typeface.DEFAULT, Typeface.BOLD_ITALIC)
+                    else -> Typeface.DEFAULT
+                }
+
+        val paint =
+                Paint().apply {
+                    color = textColor
+                    this.typeface = typeface
+                    isAntiAlias = true
+                    textAlign = Paint.Align.LEFT
+                }
+
+        // fontSize (8-20) controls text size as percentage of icon
+        val textScale = fontSize.toFloat() / 20f // Range: 0.4 to 1.0
+
+        // Helper function to draw text with smaller unit
+        fun drawTextWithUnit(
+                canvas: Canvas,
+                paint: Paint,
+                arrow: String,
+                number: String,
+                unitStr: String,
+                x: Float,
+                y: Float,
+                showUnit: Boolean
+        ) {
+            val baseSize = paint.textSize
+            var xPos = x
+
+            // Draw arrow
+            if (arrow.isNotEmpty()) {
+                canvas.drawText(arrow, xPos, y, paint)
+                xPos += paint.measureText(arrow)
+            }
+
+            // Draw number
+            canvas.drawText(number, xPos, y, paint)
+            xPos += paint.measureText(number)
+
+            // Draw unit at 0.75 size
+            if (showUnit) {
+                paint.textSize = baseSize * 0.75f
+                canvas.drawText(unitStr, xPos, y, paint)
+                paint.textSize = baseSize // Restore
             }
         }
-
-        val xPos = when (hAlign) {
-            "left" -> 2f
-            "center" -> width / 2f
-            "right" -> width - 2f
-            else -> 2f
-        }
-
-        // Fixed font size based on user setting - optimized for 3 digits + unit
-        val baseTextSize = fontSize.toFloat() * 5f
 
         when (style) {
             "combined" -> {
                 if (showDownload && showUpload) {
-                    val dl = SpeedFormatter.formatShort(downloadSpeed, unit, showUnitInIcon)
-                    val ul = SpeedFormatter.formatShort(uploadSpeed, unit, showUnitInIcon)
-                    val line1 = if (downArrow.isNotEmpty()) "$downArrow$dl" else dl
-                    val line2 = if (upArrow.isNotEmpty()) "$upArrow$ul" else ul
-                    
-                    paint.textSize = baseTextSize
-                    
+                    val (dlNum, dlUnit) = SpeedFormatter.formatShortSplit(downloadSpeed, unit)
+                    val (ulNum, ulUnit) = SpeedFormatter.formatShortSplit(uploadSpeed, unit)
+
+                    // Two lines stacked - each line gets ~45% of icon height
+                    paint.textSize = size * textScale * 0.45f
+
                     val lineHeight = paint.textSize * 1.1f
                     val totalHeight = lineHeight * 2
-                    
-                    val startY = when (vAlign) {
-                        "top" -> paint.textSize + 4f
-                        "center" -> (height - totalHeight) / 2 + paint.textSize
-                        "bottom" -> height - totalHeight - 4f + paint.textSize
-                        else -> (height - totalHeight) / 2 + paint.textSize
-                    }
-                    
-                    canvas.drawText(line1, xPos, startY, paint)
-                    canvas.drawText(line2, xPos, startY + lineHeight, paint)
+                    val startY = (size - totalHeight) / 2 + paint.textSize
+
+                    drawTextWithUnit(
+                            canvas,
+                            paint,
+                            downArrow,
+                            dlNum,
+                            dlUnit,
+                            1f,
+                            startY,
+                            showUnitInIcon
+                    )
+                    drawTextWithUnit(
+                            canvas,
+                            paint,
+                            upArrow,
+                            ulNum,
+                            ulUnit,
+                            1f,
+                            startY + lineHeight,
+                            showUnitInIcon
+                    )
                 } else {
                     val speed = if (showDownload) downloadSpeed else uploadSpeed
                     val arrow = if (showDownload) downArrow else upArrow
-                    val formatted = SpeedFormatter.formatShort(speed, unit, showUnitInIcon)
-                    val text = if (arrow.isNotEmpty()) "$arrow$formatted" else formatted
-                    
-                    paint.textSize = baseTextSize * 1.2f
-                    
-                    val yPos = when (vAlign) {
-                        "top" -> paint.textSize + 4f
-                        "center" -> height / 2f + paint.textSize / 3
-                        "bottom" -> height - 4f
-                        else -> height / 2f + paint.textSize / 3
-                    }
-                    
-                    canvas.drawText(text, xPos, yPos, paint)
+                    val (num, unitStr) = SpeedFormatter.formatShortSplit(speed, unit)
+
+                    // Single line - use most of icon height
+                    paint.textSize = size * textScale * 0.8f
+                    val yPos = size / 2f + paint.textSize / 3
+
+                    drawTextWithUnit(canvas, paint, arrow, num, unitStr, 1f, yPos, showUnitInIcon)
                 }
             }
             "download_only" -> {
-                val dl = SpeedFormatter.formatShort(downloadSpeed, unit, showUnitInIcon)
-                val text = if (downArrow.isNotEmpty()) "$downArrow$dl" else dl
-                paint.textSize = baseTextSize * 1.2f
-                
-                val yPos = when (vAlign) {
-                    "top" -> paint.textSize + 4f
-                    "center" -> height / 2f + paint.textSize / 3
-                    "bottom" -> height - 4f
-                    else -> height / 2f + paint.textSize / 3
-                }
-                
-                canvas.drawText(text, xPos, yPos, paint)
+                val (dlNum, dlUnit) = SpeedFormatter.formatShortSplit(downloadSpeed, unit)
+                paint.textSize = size * textScale * 0.8f
+                val yPos = size / 2f + paint.textSize / 3
+
+                drawTextWithUnit(canvas, paint, downArrow, dlNum, dlUnit, 1f, yPos, showUnitInIcon)
             }
             "upload_only" -> {
-                val ul = SpeedFormatter.formatShort(uploadSpeed, unit, showUnitInIcon)
-                val text = if (upArrow.isNotEmpty()) "$upArrow$ul" else ul
-                paint.textSize = baseTextSize * 1.2f
-                
-                val yPos = when (vAlign) {
-                    "top" -> paint.textSize + 4f
-                    "center" -> height / 2f + paint.textSize / 3
-                    "bottom" -> height - 4f
-                    else -> height / 2f + paint.textSize / 3
-                }
-                
-                canvas.drawText(text, xPos, yPos, paint)
+                val (ulNum, ulUnit) = SpeedFormatter.formatShortSplit(uploadSpeed, unit)
+                paint.textSize = size * textScale * 0.8f
+                val yPos = size / 2f + paint.textSize / 3
+
+                drawTextWithUnit(canvas, paint, upArrow, ulNum, ulUnit, 1f, yPos, showUnitInIcon)
             }
         }
 
         return bitmap
-    }
-
-    private fun parsePosition(position: String): Pair<String, String> {
-        return when (position) {
-            "top_left" -> Pair("left", "top")
-            "top_center" -> Pair("center", "top")
-            "top_right" -> Pair("right", "top")
-            "center_left" -> Pair("left", "center")
-            "center" -> Pair("center", "center")
-            "center_right" -> Pair("right", "center")
-            "bottom_left" -> Pair("left", "bottom")
-            "bottom_center" -> Pair("center", "bottom")
-            "bottom_right" -> Pair("right", "bottom")
-            else -> Pair("left", "center")
-        }
     }
 }

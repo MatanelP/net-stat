@@ -61,23 +61,6 @@
             android:summary="@string/pref_hide_notification_summary"
             android:defaultValue="false" />
 
-        <ListPreference
-            android:key="icon_position"
-            android:title="@string/pref_icon_position_title"
-            android:summary="@string/pref_icon_position_summary"
-            android:defaultValue="center_left"
-            android:entries="@array/icon_position_entries"
-            android:entryValues="@array/icon_position_values"
-            app:useSimpleSummaryProvider="true" />
-
-        <ListPreference
-            android:key="icon_text_color_name"
-            android:title="@string/pref_icon_color_title"
-            android:defaultValue="white"
-            android:entries="@array/icon_color_entries"
-            android:entryValues="@array/icon_color_values"
-            app:useSimpleSummaryProvider="true" />
-
         <SeekBarPreference
             android:key="icon_font_size"
             android:title="@string/pref_icon_size_title"
@@ -85,6 +68,24 @@
             android:max="20"
             app:min="8"
             app:showSeekBarValue="true" />
+
+        <ListPreference
+            android:key="icon_text_color"
+            android:title="@string/pref_icon_color_title"
+            android:summary="@string/pref_icon_color_summary"
+            android:defaultValue="white"
+            android:entries="@array/icon_color_entries"
+            android:entryValues="@array/icon_color_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:key="icon_font_style"
+            android:title="@string/pref_font_style_title"
+            android:summary="@string/pref_font_style_summary"
+            android:defaultValue="bold"
+            android:entries="@array/font_style_entries"
+            android:entryValues="@array/font_style_values"
+            app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 

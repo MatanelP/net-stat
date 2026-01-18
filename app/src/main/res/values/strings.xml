@@ -12,43 +12,46 @@
     <string name="notification_channel_name_hidden">Network Speed (Hidden)</string>
     <string name="notification_channel_description">Shows current network upload and download speed</string>
     <string name="notification_title">Network Speed</string>
-    <string name="notification_permission_required">Notification permission is required to show network speed</string>
-    <string name="monitoring_started_message">Monitoring started. Speed display may take a few seconds to appear.</string>
-    
+    <string name="notification_permission_required">Notification permission is required to show
+        network speed</string>
+    <string name="monitoring_started_message">Monitoring started. Speed display may take a few
+        seconds to appear.</string>
+
     <!-- Settings -->
     <string name="pref_category_display">Display</string>
     <string name="pref_category_units">Units</string>
     <string name="pref_category_icon">Status Bar Icon</string>
-    
+
     <string name="pref_speed_unit_title">Speed Unit</string>
     <string name="pref_speed_unit_summary">Choose how speed is displayed</string>
-    
+
     <string name="pref_show_download_title">Show Download Speed</string>
     <string name="pref_show_download_summary">Display download speed in notification</string>
-    
+
     <string name="pref_show_upload_title">Show Upload Speed</string>
     <string name="pref_show_upload_summary">Display upload speed in notification</string>
-    
+
     <string name="pref_icon_style_title">Icon Style</string>
     <string name="pref_icon_style_summary">Choose what to show in status bar icon</string>
-    
+
     <string name="pref_arrow_style_title">Arrow Style</string>
     <string name="pref_arrow_style_summary">Style of direction indicators</string>
-    
+
     <string name="pref_show_unit_icon_title">Show Unit in Icon</string>
     <string name="pref_show_unit_icon_summary">Display unit (B, K, M) in status bar icon</string>
-    
+
     <string name="pref_hide_notification_title">Minimize Notification</string>
-    <string name="pref_hide_notification_summary">Minimize notification content (Android requires it to be visible)</string>
-    
-    <string name="pref_icon_position_title">Icon Text Position</string>
-    <string name="pref_icon_position_summary">Position of text within status bar icon</string>
-    
-    <string name="pref_icon_color_title">Icon Text Color</string>
-    <string name="pref_icon_color_summary">Color of speed text in status bar</string>
-    
+    <string name="pref_hide_notification_summary">Minimize notification content (Android requires it
+        to be visible)</string>
+
     <string name="pref_icon_size_title">Icon Font Size</string>
     <string name="pref_icon_size_summary">Size of text in status bar icon</string>
+
+    <string name="pref_icon_color_title">Icon Text Color</string>
+    <string name="pref_icon_color_summary">Supported devices only</string>
+
+    <string name="pref_font_style_title">Font Style</string>
+    <string name="pref_font_style_summary">Bold, italic, or normal text</string>
     <!-- About -->
     <string name="pref_category_about">About</string>
     <string name="pref_version_title">Version</string>
