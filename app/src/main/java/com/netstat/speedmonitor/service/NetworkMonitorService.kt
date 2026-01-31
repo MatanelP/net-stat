@@ -33,6 +33,7 @@ class NetworkMonitorService : Service() {
         const val EXTRA_DOWNLOAD_SPEED = "download_speed"
         const val EXTRA_UPLOAD_SPEED = "upload_speed"
         private const val UPDATE_INTERVAL = 750L
+        private const val ZERO_THRESHOLD = 3 // Show 0 after this many consecutive zero readings
 
         fun start(context: Context) {
             val intent = Intent(context, NetworkMonitorService::class.java)
@@ -48,6 +49,12 @@ class NetworkMonitorService : Service() {
     private var lastRxBytes = 0L
     private var lastTxBytes = 0L
     private var lastTime = 0L
+
+    // Hold last non-zero values to prevent jumping to 0
+    private var lastNonZeroDownload = 0.0
+    private var lastNonZeroUpload = 0.0
+    private var downloadZeroCount = 0
+    private var uploadZeroCount = 0
 
     private val updateRunnable =
             object : Runnable {
@@ -120,8 +127,29 @@ class NetworkMonitorService : Service() {
 
         val timeDiff = (currentTime - lastTime) / 1000.0
         if (timeDiff > 0) {
-            val downloadSpeed = (currentRxBytes - lastRxBytes) / timeDiff
-            val uploadSpeed = (currentTxBytes - lastTxBytes) / timeDiff
+            val rawDownloadSpeed = (currentRxBytes - lastRxBytes) / timeDiff
+            val rawUploadSpeed = (currentTxBytes - lastTxBytes) / timeDiff
+
+            // Apply hold-last-value logic to prevent jumping to 0
+            val downloadSpeed =
+                    if (rawDownloadSpeed > 0) {
+                        downloadZeroCount = 0
+                        lastNonZeroDownload = rawDownloadSpeed
+                        rawDownloadSpeed
+                    } else {
+                        downloadZeroCount++
+                        if (downloadZeroCount >= ZERO_THRESHOLD) 0.0 else lastNonZeroDownload
+                    }
+
+            val uploadSpeed =
+                    if (rawUploadSpeed > 0) {
+                        uploadZeroCount = 0
+                        lastNonZeroUpload = rawUploadSpeed
+                        rawUploadSpeed
+                    } else {
+                        uploadZeroCount++
+                        if (uploadZeroCount >= ZERO_THRESHOLD) 0.0 else lastNonZeroUpload
+                    }
 
             val notification = createNotification(downloadSpeed, uploadSpeed)
             val manager = getSystemService(NotificationManager::class.java)
