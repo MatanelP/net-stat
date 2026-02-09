@@ -17,6 +17,12 @@
     <string name="monitoring_started_message">Monitoring started. Speed display may take a few
         seconds to appear.</string>
 
+    <!-- Main screen labels -->
+    <string name="download_label">Download</string>
+    <string name="upload_label">Upload</string>
+    <string name="speed_history">Speed History</string>
+    <string name="last_60s">Last 60 seconds</string>
+
     <!-- Settings -->
     <string name="pref_category_display">Display</string>
     <string name="pref_category_units">Units</string>

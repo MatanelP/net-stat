@@ -1,6 +1,9 @@
 package com.netstat.speedmonitor.ui
 
 import android.Manifest
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,6 +12,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -21,17 +26,26 @@ import com.netstat.speedmonitor.R
 import com.netstat.speedmonitor.databinding.ActivityMainBinding
 import com.netstat.speedmonitor.service.NetworkMonitorService
 import com.netstat.speedmonitor.utils.SpeedFormatter
+import com.netstat.speedmonitor.utils.SpeedHistoryManager
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isServiceRunning = false
+    private val speedHistory = SpeedHistoryManager()
+    private var pulseAnimator: AnimatorSet? = null
+    private var cardsShown = false
 
     private val speedUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val downloadSpeed = intent.getDoubleExtra(NetworkMonitorService.EXTRA_DOWNLOAD_SPEED, 0.0)
             val uploadSpeed = intent.getDoubleExtra(NetworkMonitorService.EXTRA_UPLOAD_SPEED, 0.0)
             updateSpeedDisplay(downloadSpeed, uploadSpeed)
+            speedHistory.addDataPoint(downloadSpeed, uploadSpeed)
+            binding.speedGraph.setData(
+                speedHistory.getDownloadHistory(),
+                speedHistory.getUploadHistory()
+            )
         }
     }
 
@@ -54,6 +68,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
 
         setupUI()
+        animateEntrance()
         updateServiceStatus()
     }
 
@@ -69,6 +84,11 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(speedUpdateReceiver)
+    }
+
+    override fun onDestroy() {
+        pulseAnimator?.cancel()
+        super.onDestroy()
     }
 
     private fun setupUI() {
@@ -94,6 +114,37 @@ class MainActivity : AppCompatActivity() {
                 .putBoolean("start_on_boot", isChecked)
                 .apply()
         }
+
+        binding.legendDownload.setOnClickListener {
+            binding.speedGraph.showDownload = !binding.speedGraph.showDownload
+            val alpha = if (binding.speedGraph.showDownload) 1f else 0.3f
+            binding.dotDownload.animate().alpha(alpha).setDuration(200).start()
+            binding.labelDownload.animate().alpha(alpha).setDuration(200).start()
+            binding.speedGraph.invalidate()
+        }
+
+        binding.legendUpload.setOnClickListener {
+            binding.speedGraph.showUpload = !binding.speedGraph.showUpload
+            val alpha = if (binding.speedGraph.showUpload) 1f else 0.3f
+            binding.dotUpload.animate().alpha(alpha).setDuration(200).start()
+            binding.labelUpload.animate().alpha(alpha).setDuration(200).start()
+            binding.speedGraph.invalidate()
+        }
+    }
+
+    private fun animateEntrance() {
+        val views = listOf<View>(binding.statusCard, binding.btnToggleService)
+        views.forEachIndexed { index, view ->
+            view.alpha = 0f
+            view.translationY = 60f
+            view.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(500)
+                .setStartDelay(100L + index * 80L)
+                .setInterpolator(DecelerateInterpolator(2f))
+                .start()
+        }
     }
 
     private fun checkPermissionAndStart() {
@@ -117,6 +168,7 @@ class MainActivity : AppCompatActivity() {
     private fun startMonitoring() {
         NetworkMonitorService.start(this)
         isServiceRunning = true
+        speedHistory.clear()
         updateUI()
         Snackbar.make(binding.root, R.string.monitoring_started_message, Snackbar.LENGTH_LONG).show()
     }
@@ -157,15 +209,84 @@ class MainActivity : AppCompatActivity() {
             binding.btnToggleService.setIconResource(R.drawable.ic_stop)
             binding.tvStatus.text = getString(R.string.status_running)
             binding.statusIndicator.setBackgroundResource(R.drawable.status_indicator_on)
-            binding.speedCard.visibility = View.VISIBLE
+
+            if (!cardsShown) {
+                cardsShown = true
+                showCardAnimated(binding.speedCard, 0)
+                showCardAnimated(binding.graphCard, 100)
+                binding.speedGraph.animateIn()
+            }
+
+            startPulseAnimation()
         } else {
             binding.btnToggleService.text = getString(R.string.start_monitoring)
             binding.btnToggleService.setIconResource(R.drawable.ic_play)
             binding.tvStatus.text = getString(R.string.status_stopped)
             binding.statusIndicator.setBackgroundResource(R.drawable.status_indicator_off)
-            binding.speedCard.visibility = View.GONE
+
+            if (cardsShown) {
+                cardsShown = false
+                hideCardAnimated(binding.speedCard)
+                hideCardAnimated(binding.graphCard)
+            }
+
             binding.tvDownloadSpeed.text = "0 B/s"
             binding.tvUploadSpeed.text = "0 B/s"
+
+            stopPulseAnimation()
         }
+    }
+
+    private fun showCardAnimated(card: View, delay: Long) {
+        card.visibility = View.VISIBLE
+        card.alpha = 0f
+        card.translationY = 30f
+        card.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(400)
+            .setStartDelay(delay)
+            .setInterpolator(DecelerateInterpolator(2f))
+            .start()
+    }
+
+    private fun hideCardAnimated(card: View) {
+        card.animate()
+            .alpha(0f)
+            .translationY(20f)
+            .setDuration(250)
+            .withEndAction { card.visibility = View.GONE }
+            .start()
+    }
+
+    private fun startPulseAnimation() {
+        if (pulseAnimator != null) return
+        val ring = binding.statusPulseRing
+        val scaleX = ObjectAnimator.ofFloat(ring, View.SCALE_X, 0.85f, 1.15f).apply {
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            duration = 1200
+        }
+        val scaleY = ObjectAnimator.ofFloat(ring, View.SCALE_Y, 0.85f, 1.15f).apply {
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            duration = 1200
+        }
+        val alpha = ObjectAnimator.ofFloat(ring, View.ALPHA, 0f, 0.5f).apply {
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            duration = 1200
+        }
+        pulseAnimator = AnimatorSet().apply {
+            playTogether(scaleX, scaleY, alpha)
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+        }
+    }
+
+    private fun stopPulseAnimation() {
+        pulseAnimator?.cancel()
+        pulseAnimator = null
+        binding.statusPulseRing.alpha = 0f
     }
 }

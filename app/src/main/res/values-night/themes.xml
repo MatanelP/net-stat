@@ -22,4 +22,22 @@
         <item name="android:background">@android:color/transparent</item>
         <item name="liftOnScroll">false</item>
     </style>
+
+    <style name="PreferenceThemeOverlay.NetStat" parent="PreferenceThemeOverlay.v14.Material">
+        <item name="preferenceStyle">@style/Preference.NetStat</item>
+        <item name="preferenceCategoryStyle">@style/Preference.NetStat.Category</item>
+        <item name="switchPreferenceCompatStyle">@style/Preference.NetStat.Switch</item>
+    </style>
+
+    <style name="Preference.NetStat" parent="Preference.Material">
+        <item name="iconSpaceReserved">true</item>
+    </style>
+
+    <style name="Preference.NetStat.Category" parent="Preference.Category.Material">
+        <item name="iconSpaceReserved">true</item>
+    </style>
+
+    <style name="Preference.NetStat.Switch" parent="Preference.SwitchPreferenceCompat.Material">
+        <item name="iconSpaceReserved">true</item>
+    </style>
 </resources>

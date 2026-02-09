@@ -9,14 +9,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        style="@style/Widget.Material3.AppBarLayout">
+        android:background="@android:color/transparent"
+        app:liftOnScroll="true"
+        app:elevation="0dp">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="@string/settings" />
+            android:layout_height="?attr/collapsingToolbarLayoutLargeSize"
+            style="?attr/collapsingToolbarLayoutLargeStyle"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+            app:contentScrim="?attr/colorSurface"
+            app:expandedTitleGravity="bottom"
+            app:expandedTitleMarginStart="24dp"
+            app:expandedTitleMarginBottom="24dp">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin"
+                app:navigationIcon="?attr/homeAsUpIndicator"
+                app:title="@string/settings" />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -24,7 +39,7 @@
         android:id="@+id/settingsContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="48dp"
+        android:paddingBottom="24dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

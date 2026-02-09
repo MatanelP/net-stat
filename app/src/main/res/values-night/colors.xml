@@ -27,4 +27,8 @@
     <!-- Speed indicators -->
     <color name="download_color">#81C784</color>
     <color name="upload_color">#64B5F6</color>
+
+    <!-- Graph -->
+    <color name="graph_grid">#14FFFFFF</color>
+    <color name="graph_label">#59FFFFFF</color>
 </resources>

@@ -17,7 +17,6 @@ class SettingsActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Settings"
 
         if (savedInstanceState == null) {
             supportFragmentManager

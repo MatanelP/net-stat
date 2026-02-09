@@ -2,7 +2,9 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory android:title="@string/pref_category_units">
+    <PreferenceCategory
+        android:title="@string/pref_category_units"
+        app:iconSpaceReserved="true">
 
         <ListPreference
             android:key="speed_unit"
@@ -10,27 +12,34 @@
             android:defaultValue="auto"
             android:entries="@array/speed_unit_entries"
             android:entryValues="@array/speed_unit_values"
+            android:icon="@drawable/ic_pref_speed"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_category_display">
+    <PreferenceCategory
+        android:title="@string/pref_category_display"
+        app:iconSpaceReserved="true">
 
         <SwitchPreferenceCompat
             android:key="show_download"
             android:title="@string/pref_show_download_title"
             android:summary="@string/pref_show_download_summary"
+            android:icon="@drawable/ic_download"
             android:defaultValue="true" />
 
         <SwitchPreferenceCompat
             android:key="show_upload"
             android:title="@string/pref_show_upload_title"
             android:summary="@string/pref_show_upload_summary"
+            android:icon="@drawable/ic_upload"
             android:defaultValue="true" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_category_icon">
+    <PreferenceCategory
+        android:title="@string/pref_category_icon"
+        app:iconSpaceReserved="true">
 
         <ListPreference
             android:key="icon_style"
@@ -38,6 +47,7 @@
             android:defaultValue="combined"
             android:entries="@array/icon_style_entries"
             android:entryValues="@array/icon_style_values"
+            android:icon="@drawable/ic_pref_style"
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
@@ -47,23 +57,27 @@
             android:defaultValue="arrows"
             android:entries="@array/arrow_style_entries"
             android:entryValues="@array/arrow_style_values"
+            android:icon="@drawable/ic_pref_arrows"
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreferenceCompat
             android:key="show_unit_in_icon"
             android:title="@string/pref_show_unit_icon_title"
             android:summary="@string/pref_show_unit_icon_summary"
+            android:icon="@drawable/ic_pref_unit"
             android:defaultValue="true" />
 
         <SwitchPreferenceCompat
             android:key="hide_notification"
             android:title="@string/pref_hide_notification_title"
             android:summary="@string/pref_hide_notification_summary"
+            android:icon="@drawable/ic_pref_notification"
             android:defaultValue="false" />
 
         <SeekBarPreference
             android:key="icon_font_size"
             android:title="@string/pref_icon_size_title"
+            android:icon="@drawable/ic_pref_textsize"
             android:defaultValue="16"
             android:max="20"
             app:min="8"
@@ -76,6 +90,7 @@
             android:defaultValue="white"
             android:entries="@array/icon_color_entries"
             android:entryValues="@array/icon_color_values"
+            android:icon="@drawable/ic_pref_color"
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
@@ -85,32 +100,39 @@
             android:defaultValue="bold"
             android:entries="@array/font_style_entries"
             android:entryValues="@array/font_style_values"
+            android:icon="@drawable/ic_pref_fontstyle"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_category_about">
+    <PreferenceCategory
+        android:title="@string/pref_category_about"
+        app:iconSpaceReserved="true">
 
         <Preference
             android:key="version"
             android:title="@string/pref_version_title"
+            android:icon="@drawable/ic_pref_info"
             android:selectable="false" />
 
         <Preference
             android:key="source_code"
             android:title="@string/pref_source_code_title"
-            android:summary="@string/pref_source_code_summary" />
+            android:summary="@string/pref_source_code_summary"
+            android:icon="@drawable/ic_pref_code" />
 
         <Preference
             android:key="developer"
             android:title="@string/pref_developer_title"
             android:summary="@string/pref_developer_summary"
+            android:icon="@drawable/ic_pref_person"
             android:selectable="false" />
 
         <Preference
             android:key="license"
             android:title="@string/pref_license_title"
             android:summary="@string/pref_license_summary"
+            android:icon="@drawable/ic_pref_license"
             android:selectable="false" />
 
     </PreferenceCategory>

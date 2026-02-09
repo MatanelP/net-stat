@@ -291,17 +291,11 @@ class NetworkMonitorService : Service() {
             textColor: Int,
             fontStyle: String
     ): Bitmap {
-        // Android notification icons in status bar are constrained to ~24dp height
-        // For text-based icons, we need to balance width vs height
-        // A narrower icon renders LARGER because Android scales by the constraining dimension
-        // Using 80 pixels gives us a square icon that renders at full status bar height
-        val size = 80
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
+        val height = 80
+        val padding = 2f
 
         val (downArrow, upArrow) = getArrowSymbols(arrowStyle)
 
-        // Determine typeface based on font style
         val typeface =
                 when (fontStyle) {
                     "bold" -> Typeface.DEFAULT_BOLD
@@ -318,10 +312,26 @@ class NetworkMonitorService : Service() {
                     textAlign = Paint.Align.LEFT
                 }
 
-        // fontSize (8-20) controls text size as percentage of icon
-        val textScale = fontSize.toFloat() / 20f // Range: 0.4 to 1.0
+        val textScale = fontSize.toFloat() / 20f
 
-        // Helper function to draw text with smaller unit
+        fun measureLineWidth(
+                arrow: String,
+                number: String,
+                unitStr: String,
+                showUnit: Boolean
+        ): Float {
+            var w = 0f
+            if (arrow.isNotEmpty()) w += paint.measureText(arrow)
+            w += paint.measureText(number)
+            if (showUnit) {
+                val baseSize = paint.textSize
+                paint.textSize = baseSize * 0.75f
+                w += paint.measureText(unitStr)
+                paint.textSize = baseSize
+            }
+            return w
+        }
+
         fun drawTextWithUnit(
                 canvas: Canvas,
                 paint: Paint,
@@ -335,82 +345,79 @@ class NetworkMonitorService : Service() {
             val baseSize = paint.textSize
             var xPos = x
 
-            // Draw arrow
             if (arrow.isNotEmpty()) {
                 canvas.drawText(arrow, xPos, y, paint)
                 xPos += paint.measureText(arrow)
             }
 
-            // Draw number
             canvas.drawText(number, xPos, y, paint)
             xPos += paint.measureText(number)
 
-            // Draw unit at 0.75 size
             if (showUnit) {
                 paint.textSize = baseSize * 0.75f
                 canvas.drawText(unitStr, xPos, y, paint)
-                paint.textSize = baseSize // Restore
+                paint.textSize = baseSize
             }
         }
+
+        // Pre-compute formatted text for each line
+        data class LineData(val arrow: String, val number: String, val unit: String)
+        val lines = mutableListOf<LineData>()
+        val isMultiLine: Boolean
 
         when (style) {
             "combined" -> {
                 if (showDownload && showUpload) {
                     val (dlNum, dlUnit) = SpeedFormatter.formatShortSplit(downloadSpeed, unit)
                     val (ulNum, ulUnit) = SpeedFormatter.formatShortSplit(uploadSpeed, unit)
-
-                    // Two lines stacked - each line gets ~45% of icon height
-                    paint.textSize = size * textScale * 0.45f
-
-                    val lineHeight = paint.textSize * 1.1f
-                    val totalHeight = lineHeight * 2
-                    val startY = (size - totalHeight) / 2 + paint.textSize
-
-                    drawTextWithUnit(
-                            canvas,
-                            paint,
-                            downArrow,
-                            dlNum,
-                            dlUnit,
-                            1f,
-                            startY,
-                            showUnitInIcon
-                    )
-                    drawTextWithUnit(
-                            canvas,
-                            paint,
-                            upArrow,
-                            ulNum,
-                            ulUnit,
-                            1f,
-                            startY + lineHeight,
-                            showUnitInIcon
-                    )
+                    lines.add(LineData(downArrow, dlNum, dlUnit))
+                    lines.add(LineData(upArrow, ulNum, ulUnit))
+                    isMultiLine = true
                 } else {
                     val speed = if (showDownload) downloadSpeed else uploadSpeed
                     val arrow = if (showDownload) downArrow else upArrow
                     val (num, unitStr) = SpeedFormatter.formatShortSplit(speed, unit)
-
-                    // Single line - use most of icon height
-                    paint.textSize = size * textScale * 0.8f
-                    val yPos = size / 2f + paint.textSize / 3
-
-                    drawTextWithUnit(canvas, paint, arrow, num, unitStr, 1f, yPos, showUnitInIcon)
+                    lines.add(LineData(arrow, num, unitStr))
+                    isMultiLine = false
                 }
             }
             "download_only" -> {
                 val (dlNum, dlUnit) = SpeedFormatter.formatShortSplit(downloadSpeed, unit)
-                paint.textSize = size * textScale * 0.8f
-                val yPos = size / 2f + paint.textSize / 3
-
-                drawTextWithUnit(canvas, paint, downArrow, dlNum, dlUnit, 1f, yPos, showUnitInIcon)
+                lines.add(LineData(downArrow, dlNum, dlUnit))
+                isMultiLine = false
             }
             "upload_only" -> {
                 val (ulNum, ulUnit) = SpeedFormatter.formatShortSplit(uploadSpeed, unit)
-                paint.textSize = size * textScale * 0.8f
-                val yPos = size / 2f + paint.textSize / 3
+                lines.add(LineData(upArrow, ulNum, ulUnit))
+                isMultiLine = false
+            }
+            else -> { isMultiLine = false }
+        }
 
-                drawTextWithUnit(canvas, paint, upArrow, ulNum, ulUnit, 1f, yPos, showUnitInIcon)
+        // Size text and measure width to fit content
+        paint.textSize = if (isMultiLine) height * textScale * 0.45f else height * textScale * 0.8f
+        val maxLineWidth = lines.maxOfOrNull {
+            measureLineWidth(it.arrow, it.number, it.unit, showUnitInIcon)
+        } ?: 0f
+        val width = (maxLineWidth + padding * 2).toInt().coerceAtLeast(height)
+
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        if (lines.isNotEmpty()) {
+            if (isMultiLine) {
+                val lineHeight = paint.textSize * 1.1f
+                val totalHeight = lineHeight * 2
+                val startY = (height - totalHeight) / 2 + paint.textSize
+
+                drawTextWithUnit(canvas, paint, lines[0].arrow, lines[0].number,
+                        lines[0].unit, padding, startY, showUnitInIcon)
+                drawTextWithUnit(canvas, paint, lines[1].arrow, lines[1].number,
+                        lines[1].unit, padding, startY + lineHeight, showUnitInIcon)
+            } else {
+                val yPos = height / 2f + paint.textSize / 3
+                drawTextWithUnit(canvas, paint, lines[0].arrow, lines[0].number,
+                        lines[0].unit, padding, yPos, showUnitInIcon)
             }
         }
 
