@@ -1,17 +1,46 @@
 # NetStat - Network Speed Monitor
 
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
 *.iml
-.gradle
+.idea/
+*.swp
+*~
+
+# Kotlin
+.kotlin/
+*.class
+*.kotlin_module
+
+# Android
 /local.properties
-/.idea
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
 local.properties
-/app/build
-/app/release
+/captures
+.externalNativeBuild/
+.cxx/
+*.hprof
+
+# Build outputs
 *.apk
 *.aab
+*.ap_
+/app/build/
+/app/release/
+
+# Signing
 release-key.jks
+*.keystore
+*.jks
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.tmp
+*.bak

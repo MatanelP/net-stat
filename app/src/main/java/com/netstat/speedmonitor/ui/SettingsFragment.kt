@@ -3,6 +3,7 @@ package com.netstat.speedmonitor.ui
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -14,6 +15,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
+
+        findPreference<ListPreference>("theme_mode")?.apply {
+            summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+            setOnPreferenceChangeListener { _, newValue ->
+                AppCompatDelegate.setDefaultNightMode(
+                    when (newValue as String) {
+                        "light" -> AppCompatDelegate.MODE_NIGHT_NO
+                        "dark" -> AppCompatDelegate.MODE_NIGHT_YES
+                        else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                    }
+                )
+                true
+            }
+        }
 
         findPreference<ListPreference>("speed_unit")?.apply {
             summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()

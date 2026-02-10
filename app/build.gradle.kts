@@ -28,8 +28,8 @@ android {
         applicationId = "com.netstat.speedmonitor"
         minSdk = 28
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.2.0"
+        versionCode = 7
+        versionName = "1.3.0"
     }
 
     buildTypes {

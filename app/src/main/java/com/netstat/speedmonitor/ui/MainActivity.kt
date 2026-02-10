@@ -17,7 +17,11 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
@@ -61,12 +65,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         DynamicColors.applyToActivityIfAvailable(this)
+        applySavedTheme()
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
-
+        setupWindowInsets()
         setupUI()
         animateEntrance()
         updateServiceStatus()
@@ -129,6 +134,27 @@ class MainActivity : AppCompatActivity() {
             binding.dotUpload.animate().alpha(alpha).setDuration(200).start()
             binding.labelUpload.animate().alpha(alpha).setDuration(200).start()
             binding.speedGraph.invalidate()
+        }
+    }
+
+    private fun applySavedTheme() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val mode = prefs.getString("theme_mode", "system") ?: "system"
+        AppCompatDelegate.setDefaultNightMode(
+            when (mode) {
+                "light" -> AppCompatDelegate.MODE_NIGHT_NO
+                "dark" -> AppCompatDelegate.MODE_NIGHT_YES
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+        )
+    }
+
+    private fun setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val scrollView = binding.root.getChildAt(1)
+            scrollView?.updatePadding(bottom = navBar.bottom)
+            insets
         }
     }
 

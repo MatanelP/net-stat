@@ -23,7 +23,16 @@
     <string name="speed_history">Speed History</string>
     <string name="last_60s">Last 60 seconds</string>
 
+    <!-- Theme -->
+    <string name="theme_label">Theme</string>
+    <string name="theme_system">Auto</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
     <!-- Settings -->
+    <string name="pref_category_appearance">Appearance</string>
+    <string name="pref_theme_title">Theme</string>
+    <string name="pref_theme_summary">Choose light, dark, or system default</string>
     <string name="pref_category_display">Display</string>
     <string name="pref_category_units">Units</string>
     <string name="pref_category_icon">Status Bar Icon</string>
