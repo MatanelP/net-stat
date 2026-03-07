@@ -29,6 +29,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.netstat.speedmonitor.R
 import com.netstat.speedmonitor.databinding.ActivityMainBinding
 import com.netstat.speedmonitor.service.NetworkMonitorService
+import com.netstat.speedmonitor.utils.ReviewManager
 import com.netstat.speedmonitor.utils.SpeedFormatter
 import com.netstat.speedmonitor.utils.SpeedHistoryManager
 
@@ -75,6 +76,9 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         animateEntrance()
         updateServiceStatus()
+        
+        // Track app launch for review prompt
+        ReviewManager.trackLaunch(this)
     }
 
     override fun onResume() {
@@ -197,6 +201,16 @@ class MainActivity : AppCompatActivity() {
         speedHistory.clear()
         updateUI()
         Snackbar.make(binding.root, R.string.monitoring_started_message, Snackbar.LENGTH_LONG).show()
+        
+        // Track service start and maybe prompt for review
+        ReviewManager.trackServiceStart(this)
+        
+        // Delay review prompt slightly so it doesn't interrupt the user immediately
+        binding.root.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                ReviewManager.requestReview(this)
+            }
+        }, 3000) // 3 second delay after starting monitoring
     }
 
     private fun stopMonitoring() {

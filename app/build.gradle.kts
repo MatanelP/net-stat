@@ -28,8 +28,8 @@ android {
         applicationId = "com.netstat.speedmonitor"
         minSdk = 28
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.3.0"
+        versionCode = 8
+        versionName = "1.4.0"
     }
 
     buildTypes {
@@ -65,4 +65,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.lifecycle:lifecycle-service:2.8.7")
+    
+    // In-App Review
+    implementation("com.google.android.play:review-ktx:2.0.2")
 }
